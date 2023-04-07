@@ -1,4 +1,5 @@
 import json
+import os
 import openai
 from tqdm import tqdm
 
@@ -9,16 +10,29 @@ with open("openai_key") as f:
 with open("all_scraped.json") as f:
     all_scraped = json.load(f)
 
-RESULT_FILE_NAME = "chat_results.jsonl"
-open(RESULT_FILE_NAME, "w").close()
+RESULT_FILE_NAME = "chat_results.json"
+
+if os.path.exists(RESULT_FILE_NAME):
+    with open(RESULT_FILE_NAME) as f:
+        results = json.load(f)
+else:
+    results = []
+
+done_websites = []
+for row in results:
+    done_websites.append(row["website_name"])
 
 MODEL = "gpt-3.5-turbo"
 
-for row in tqdm(all_scraped[:5]):
+for row in tqdm(all_scraped):
     website_name = row["website_name"]
     contents = row["contents"]
+
+    if website_name in done_websites:
+        continue
+
     messages = [
-        {"role": "system", "content": "You are a helpful assistant."},
+        # {"role": "system", "content": "You are a helpful assistant."},
         {
             "role": "user",
             "content": f"Here is an website with URL {website_name}.\nHere are the contents of the website {contents}. What does this website do?",
@@ -29,26 +43,24 @@ for row in tqdm(all_scraped[:5]):
         messages=messages,
     )
     description_response = result["choices"][0]["message"]
-    messages.append(description_response)
-    messages.append(
+    # messages.append(description_response)
+    # messages.append(
+    #     {
+    #         "role": "user",
+    #         "content": "List 5 ideas how a large language model finetuned on question answering tasks can benefit their company.",
+    #     }
+    # )
+    # result = openai.ChatCompletion.create(
+    #     model=MODEL,
+    #     messages=messages,
+    # )
+    # ideas_response = result["choices"][0]["message"]
+    results.append(
         {
-            "role": "user",
-            "content": "List 5 ideas how a large language model finetuned on question answering tasks can benefit their company.",
+            "website_name": website_name,
+            "description": description_response["content"],
+            # "ideas": ideas_response["content"],
         }
     )
-    result = openai.ChatCompletion.create(
-        model=MODEL,
-        messages=messages,
-    )
-    ideas_response = result["choices"][0]["message"]
-    with open(RESULT_FILE_NAME, "a") as f:
-        f.write(
-            json.dumps(
-                {
-                    "website_name": website_name,
-                    "description": description_response["content"],
-                    "ideas": ideas_response["content"],
-                }
-            )
-            + "\n"
-        )
+    with open(RESULT_FILE_NAME, "w") as f:
+        json.dump(results, f, indent=2)
