@@ -31,36 +31,41 @@ for row in tqdm(all_scraped):
     if website_name in done_websites:
         continue
 
-    messages = [
-        # {"role": "system", "content": "You are a helpful assistant."},
-        {
-            "role": "user",
-            "content": f"Here is an website with URL {website_name}.\nHere are the contents of the website {contents}. What does this website do?",
-        },
-    ]
-    result = openai.ChatCompletion.create(
-        model=MODEL,
-        messages=messages,
-    )
-    description_response = result["choices"][0]["message"]
-    # messages.append(description_response)
-    # messages.append(
-    #     {
-    #         "role": "user",
-    #         "content": "List 5 ideas how a large language model finetuned on question answering tasks can benefit their company.",
-    #     }
-    # )
-    # result = openai.ChatCompletion.create(
-    #     model=MODEL,
-    #     messages=messages,
-    # )
-    # ideas_response = result["choices"][0]["message"]
-    results.append(
-        {
-            "website_name": website_name,
-            "description": description_response["content"],
-            # "ideas": ideas_response["content"],
-        }
-    )
-    with open(RESULT_FILE_NAME, "w") as f:
-        json.dump(results, f, indent=2)
+    try:
+        messages = [
+            # {"role": "system", "content": "You are a helpful assistant."},
+            {
+                "role": "user",
+                "content": f"Here is an website with URL {website_name}.\nHere are the contents of the website {contents}. What does this website do?",
+            },
+        ]
+        result = openai.ChatCompletion.create(
+            model=MODEL,
+            messages=messages,
+        )
+        description_response = result["choices"][0]["message"]
+        # messages.append(description_response)
+        # messages.append(
+        #     {
+        #         "role": "user",
+        #         "content": "List 5 ideas how a large language model finetuned on question answering tasks can benefit their company.",
+        #     }
+        # )
+        # result = openai.ChatCompletion.create(
+        #     model=MODEL,
+        #     messages=messages,
+        # )
+        # ideas_response = result["choices"][0]["message"]
+        results.append(
+            {
+                "website_name": website_name,
+                "description": description_response["content"],
+                # "ideas": ideas_response["content"],
+            }
+        )
+        with open(RESULT_FILE_NAME, "w") as f:
+            json.dump(results, f, indent=2)
+    except Exception as e:
+        # print(website_name)
+        # print(e)
+        ...
