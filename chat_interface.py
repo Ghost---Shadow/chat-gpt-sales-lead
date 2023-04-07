@@ -24,6 +24,8 @@ for row in results:
 
 MODEL = "gpt-3.5-turbo"
 
+success = 0
+failure = 0
 for row in tqdm(all_scraped):
     website_name = row["website_name"]
     contents = row["contents"]
@@ -65,7 +67,18 @@ for row in tqdm(all_scraped):
         )
         with open(RESULT_FILE_NAME, "w") as f:
             json.dump(results, f, indent=2)
+        success += 1
     except Exception as e:
         # print(website_name)
         # print(e)
-        ...
+        failure += 1
+
+    with open("uptime", "w") as f:
+        json.dump(
+            {
+                "failure": failure,
+                "success": success,
+            },
+            f,
+            indent=2,
+        )
